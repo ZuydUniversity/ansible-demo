@@ -1,0 +1,28 @@
+# Description
+# ===========
+# This playbook create an Azure VM with public IP, and open 22 port for SSH
+
+- name: Create Azure VM
+  hosts: localhost
+  connection: local
+  vars:
+    resource_group: "Lectoraat"
+    vm_name: rbi-testvm-01
+    location: westeurope
+  tasks:
+  - name: Create VM
+    azure_rm_virtualmachine:
+      resource_group: "{{ resource_group }}"
+      name: "{{ vm_name }}"
+      state: absent
+      # ignore_errors: yes
+      remove_on_absent:
+        - network_interfaces
+        - virtual_storage
+        - public_ips
+
+  - name: Remove storage account
+    azure_rm_storageaccount: 
+      resource_group: '{{ resource_group }}'
+      name:  '{{ vm_name }}'
+      state: absent

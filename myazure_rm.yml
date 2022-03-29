@@ -1,0 +1,3 @@
+plugin: azure_rm
+conditional_groups:
+  linux: "'linux' in os_profile.system"

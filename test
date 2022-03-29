@@ -1,0 +1,6 @@
+az vm create \
+--resource-group Lectoraat \
+--name QuickstartAnsible-vm \
+--image OpenLogic:CentOS:7.7:latest \
+--admin-username azureuser \
+--admin-password #ynZBD952fK4o4UBkiiKbBAnfXjopcgHcUv@NTK!

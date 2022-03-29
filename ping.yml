@@ -1,0 +1,7 @@
+---
+- hosts: linux
+  gather_facts: false
+
+  tasks:
+    - name: run ping
+      ping:
