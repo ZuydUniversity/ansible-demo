@@ -2,29 +2,38 @@
   hosts: localhost
   connection: local
   vars:
-    resource_group: "{{ resource_group_name }}"
-    vm_name: testvm
+    resgrp: Lectoraat
+    vm_name: myVM
+    vm_storage: mystore1111
+    vm_nsg: myNetworkSecurityGroup
+    vm_vnet: myVnet
     location: eastus
-    ssh_key: {{ lookup('file', '.azure/ssh_keys/id_rsa.pub') }}
+    ssh_key: "{{ lookup('file', '.azure/ssh_keys/id_rsa.pub') }}"
   tasks:
   # - name: Create resource group
   #   azure_rm_resourcegroup:
-  #     name: Lectoraat
+  #     name: '{{ resgrp }}'
   #     location: westeurope
+  - name: Create storage account
+    azure_rm_storageaccount: 
+      resource_group: '{{ resgrp }}'
+      name: '{{ vm_storage }}'
+      account_type: Standard_LRS
+
   - name: Create virtual network
     azure_rm_virtualnetwork:
-      resource_group: Lectoraat
-      name: myVnet
+      resource_group: '{{ resgrp }}'
+      name: '{{ vm_vnet }}'
       address_prefixes: "10.0.0.0/16"
   - name: Add subnet
     azure_rm_subnet:
-      resource_group: Lectoraat
+      resource_group: '{{ resgrp }}'
       name: mySubnet
       address_prefix: "10.0.1.0/24"
-      virtual_network: myVnet
+      virtual_network: '{{ vm_vnet }}'
   - name: Create public IP address
     azure_rm_publicipaddress:
-      resource_group: Lectoraat
+      resource_group: '{{ resgrp }}'
       allocation_method: Static
       name: myPublicIP
     register: output_ip_address
@@ -33,8 +42,8 @@
       msg: "The public IP is {{ output_ip_address.state.ip_address }}."
   - name: Create Network Security Group that allows SSH
     azure_rm_securitygroup:
-      resource_group: Lectoraat
-      name: myNetworkSecurityGroup
+      resource_group: '{{ resgrp }}'
+      name: '{{ vm_nsg }}'
       rules:
         - name: SSH
           protocol: Tcp
@@ -44,16 +53,16 @@
           direction: Inbound
   - name: Create virtual network interface card
     azure_rm_networkinterface:
-      resource_group: Lectoraat
+      resource_group: '{{ resgrp }}'
       name: myNIC
-      virtual_network: myVnet
+      virtual_network: '{{ vm_vnet }}'
       subnet: mySubnet
       public_ip_name: myPublicIP
-      security_group: myNetworkSecurityGroup
+      security_group: '{{ vm_nsg }}'
   - name: Create VM
     azure_rm_virtualmachine:
-      resource_group: Lectoraat
-      name: myVM
+      resource_group: '{{ resgrp }}'
+      name: '{{ vm_name }}'
       vm_size: Standard_DS1_v2
       admin_username: azureuser
       ssh_password_enabled: false
@@ -61,6 +70,7 @@
         - path: /home/azureuser/.ssh/authorized_keys
           key_data: "{{ ssh_key }}"
       network_interfaces: myNIC
+      storage_account_name: '{{ vm_storage }}'
       image:
         offer: CentOS
         publisher: OpenLogic

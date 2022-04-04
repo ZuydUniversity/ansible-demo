@@ -1,0 +1,44 @@
+# The following variables must be specified:
+# - vmname
+# - resgrp
+- name: Remove Virtual Machine and associated objects
+  hosts: localhost
+  connection: local
+  gather_facts: no 
+  vars:
+    resgrp: Lectoraat
+    vm_name: myVM
+    vm_storage: mystore1111
+    vm_nsg: myNetworkSecurityGroup
+    vm_vnet: myVnet
+    location: eastus
+  tasks:
+  - name: Remove VM and all resources
+    azure_rm_virtualmachine:
+      resource_group: '{{ resgrp }}'
+      name: '{{ vm_name }}'
+      state: absent
+      # ignore_errors: yes
+      remove_on_absent:
+        - network_interfaces
+        - virtual_storage
+        - public_ips
+        
+  - name: Remove storage account
+    azure_rm_storageaccount: 
+      resource_group: '{{ resgrp }}'
+      name:  '{{ vm_storage }}'
+      force_delete_nonempty: yes
+      state: absent
+
+  - name: Remove Network Security Group
+    azure_rm_securitygroup:
+      resource_group: '{{ resgrp }}'
+      name: '{{ vm_nsg }}'
+      state: absent
+
+  - name: Remove virtual network
+    azure_rm_virtualnetwork:
+      resource_group: '{{ resgrp }}'
+      name: '{{ vm_vnet }}'
+      state: absent
